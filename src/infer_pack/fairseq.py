@@ -1015,7 +1015,7 @@ class FeedForwardModule(nn.Module):
         self.w_2 = nn.Linear(hidden_units, input_feat, bias=bias)
         self.dropout1 = nn.Dropout(dropout1)
         self.dropout2 = nn.Dropout(dropout2)
-        self.activation = get_activation_fn(activation_fn)(hidden_units)
+        self.activation = get_activation_fn(activation_fn)
 
     def forward(self, x):
         return self.dropout2(
@@ -1043,12 +1043,12 @@ class ConvolutionModule(nn.Module):
     ):
         super(ConvolutionModule, self).__init__()
         assert (depthwise_kernel_size - 1) % 2 == 0
-        self.layer_norm = LayerNorm(embed_dim, export=export)
+        self.layer_norm = LayerNorm(embed_dim)
         self.pointwise_conv1 = nn.Conv1d(embed_dim, 2 * channels, kernel_size=1, stride=1, padding=0, bias=bias)
         self.glu = nn.GLU(dim=1)
         self.depthwise_conv = nn.Conv1d(channels, channels, depthwise_kernel_size, stride=1, padding=(depthwise_kernel_size - 1) // 2, groups=channels, bias=bias)
         self.batch_norm = nn.BatchNorm1d(channels)
-        self.activation = get_activation_fn(activation_fn)(channels)
+        self.activation = get_activation_fn(activation_fn)
         self.pointwise_conv2 = nn.Conv1d(channels, embed_dim, kernel_size=1, stride=1, padding=0, bias=bias)
         self.dropout = nn.Dropout(dropout)
 
@@ -1208,7 +1208,7 @@ class ConformerEncoderLayer(nn.Module):
         self.pos_enc_type = pos_enc_type
         super(ConformerEncoderLayer, self).__init__()
         self.ffn1 = FeedForwardModule(embed_dim, ffn_embed_dim, dropout, dropout)
-        self.self_attn_layer_norm = LayerNorm(embed_dim, export=False)
+        self.self_attn_layer_norm = LayerNorm(embed_dim)
         self.self_attn_dropout = nn.Dropout(dropout)
         if attn_type == "espnet":
             if self.pos_enc_type == "rel_pos": self.self_attn = RelPositionMultiHeadedAttention(embed_dim, attention_heads, dropout=dropout)
@@ -1216,9 +1216,9 @@ class ConformerEncoderLayer(nn.Module):
             elif self.pos_enc_type == "abs": self.self_attn = ESPNETMultiHeadedAttention(embed_dim, attention_heads, dropout=dropout)
             else: raise Exception
         else: self.self_attn = MultiheadAttention(embed_dim, attention_heads, dropout=dropout)
-        self.conv_module = ConvolutionModule(embed_dim=embed_dim, channels=embed_dim, depthwise_kernel_size=depthwise_conv_kernel_size, dropout=dropout, activation_fn=activation_fn)
+        self.conv_module = ConvolutionModule(embed_dim=embed_dim, channels=embed_dim, depthwise_conv_kernel_size=depthwise_conv_kernel_size, dropout=dropout, activation_fn=activation_fn)
         self.ffn2 = FeedForwardModule(embed_dim, ffn_embed_dim, dropout, dropout, activation_fn=activation_fn)
-        self.final_layer_norm = LayerNorm(embed_dim, export=False)
+        self.final_layer_norm = LayerNorm(embed_dim)
 
     def forward(self, x, encoder_padding_mask, position_emb = None):
         residual = x
@@ -1540,7 +1540,7 @@ class ConvFeatureExtractionModel(nn.Module):
                     nn.Sequential(
                         TransposeLast(), 
                         Fp32LayerNorm(
-                            dim, 
+                            n_out, 
                             elementwise_affine=True
                         ), 
                         TransposeLast()
@@ -1551,7 +1551,7 @@ class ConvFeatureExtractionModel(nn.Module):
                 return nn.Sequential(
                     make_conv(), 
                     nn.Dropout(p=dropout), 
-                    Fp32GroupNorm(dim, dim, affine=True), 
+                    Fp32GroupNorm(n_out, n_out, affine=True), 
                     nn.GELU()
                 )
             else: 
@@ -1582,10 +1582,12 @@ class ConvFeatureExtractionModel(nn.Module):
             in_d = dim
 
     def forward(self, x):
-        x = x.unsqueeze(1)
+        x = x.unsqueeze(1)  # [batch, 1, time]
         for conv in self.conv_layers:
+            # Cast input to match the dtype of this conv block's parameters
+            param_dtype = next(conv.parameters()).dtype
+            x = x.to(dtype=param_dtype)
             x = conv(x)
-
         return x
 
 class GradMultiply(torch.autograd.Function):
