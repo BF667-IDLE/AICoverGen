@@ -109,7 +109,7 @@ class Config:
 
 def load_hubert(device, is_half, model_path):
     
-    models = fairseq.load_model(model_path).to(self.device).eval()
+    models = load_model(model_path).to(self.device).eval()
     hubert_model = models.half() if self.config.is_half else models.float()
 
     return hubert
@@ -166,5 +166,6 @@ def rvc_infer(index_path, index_rate, input_path, output_path, pitch_change, f0_
 
         wavfile.write(output_path, tgt_sr, audio_opt)
         working_path = output_path
+
 
 
