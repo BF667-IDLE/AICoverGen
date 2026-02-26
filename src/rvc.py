@@ -10,7 +10,7 @@ from infer_pack.models import (
 )
 from my_utils import load_audio
 from vc_infer_pipeline import VC
-from fairseq import *
+from fairseq import load_model
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -166,6 +166,7 @@ def rvc_infer(index_path, index_rate, input_path, output_path, pitch_change, f0_
 
         wavfile.write(output_path, tgt_sr, audio_opt)
         working_path = output_path
+
 
 
 
