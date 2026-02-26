@@ -10,7 +10,7 @@ from infer_pack.models import (
 )
 from my_utils import load_audio
 from vc_infer_pipeline import VC
-
+import fairseq
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -108,18 +108,10 @@ class Config:
 
 
 def load_hubert(device, is_half, model_path):
-    from fairseq import checkpoint_utils
+    
+    models = fairseq.load_model(model_path).to(self.device).eval()
+    hubert_model = models.half() if self.config.is_half else models.float()
 
-    models, saved_cfg, task = checkpoint_utils.load_model_ensemble_and_task([model_path], suffix='', )
-    hubert = models[0]
-    hubert = hubert.to(device)
-
-    if is_half:
-        hubert = hubert.half()
-    else:
-        hubert = hubert.float()
-
-    hubert.eval()
     return hubert
 
 
@@ -174,3 +166,4 @@ def rvc_infer(index_path, index_rate, input_path, output_path, pitch_change, f0_
 
         wavfile.write(output_path, tgt_sr, audio_opt)
         working_path = output_path
+
