@@ -218,7 +218,7 @@ if __name__ == '__main__':
                         local_file = gr.File(label='Audio file', interactive=True, type="filepath", file_types=audio_extensions, height=150)
                         if not IS_ZERO_GPU:
                             with gr.Row():
-                                with gr.Row(scale=2):
+                                with gr.Row():
                                     url_media_gui = gr.Textbox(value="", label="Enter URL", placeholder="www.youtube.com/watch?v=g_9rPvbENUw", lines=1)
                                 with gr.Row(scale=1):
                                     url_button_gui = gr.Button("Process URL", variant="secondary")
@@ -368,4 +368,5 @@ if __name__ == '__main__':
         server_name=None if not args.listen else (args.listen_host or '0.0.0.0'),
         server_port=args.listen_port,
     )
+
 
