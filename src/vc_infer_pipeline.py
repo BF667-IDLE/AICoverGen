@@ -449,6 +449,12 @@ class VC(object):
         version,
         protect,
     ):  # ,file_index,file_big_npy
+        # Validate models - Added to prevent NoneType errors
+        if model is None:
+            raise RuntimeError("Hubert model is not loaded. Please check model loading in the calling code (rvc.py).")
+        if net_g is None:
+            raise RuntimeError("net_g (generator) is not loaded. Please check model loading in the calling code (rvc.py).")
+        
         feats = torch.from_numpy(audio0)
         if self.is_half:
             feats = feats.half()
