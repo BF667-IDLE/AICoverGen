@@ -186,12 +186,10 @@ def show_hop_slider(pitch_detection_algo):
 if __name__ == '__main__':
     parser = ArgumentParser(description='Generate a AI cover song in the song_output/id directory.', add_help=True)
     parser.add_argument("--share", action="store_true", dest="share_enabled", default=False, help="Enable sharing")
-    parser.add_argument("--builtin-player",  action="store_true", default=False, help="Use the builtin audio player")
     parser.add_argument("--listen", action="store_true", default=False, help="Make the WebUI reachable from your local network.")
     parser.add_argument('--listen-host', type=str, help='The hostname that the server will use.')
     parser.add_argument('--listen-port', type=int, help='The listening port that the server will use.')
     parser.add_argument('--theme', type=str, default="NoCrypt/miku", help='Set the theme (default: NoCrypt/miku)')
-    parser.add_argument("--ssr", action="store_true", help="Enable SSR (Server-Side Rendering)")
     args = parser.parse_args()
 
     voice_models = get_current_models(rvc_models_dir)
@@ -200,20 +198,8 @@ if __name__ == '__main__':
 
     with gr.Blocks(title='AICoverGenWebUI', theme=args.theme, fill_width=True, fill_height=False) as app:
 
-        gr.Label(f'AICoverGen WebUI {"ZeroGPU mode" if IS_ZERO_GPU else ""} created with ❤️', show_label=False)
-        if IS_ZERO_GPU:
-            gr.Markdown(
-                """
-                <details>
-                    <summary style="font-size: 1.5em;">⚠️ Important (click to expand)</summary>
-                    <ul>
-                        <li>🚀 This demo use a Zero GPU, which is available only for a limited time. It's recommended to use audio files that are no longer than 5 minutes. If you want to use it without time restrictions, you can duplicate the 'old CPU space'. ⏳</li>
-                    </ul>
-                </details>
-                """
-            )
-            gr.Markdown("Duplicate the old CPU space for use in private: [![Duplicate this Space](https://huggingface.co/datasets/huggingface/badges/raw/main/duplicate-this-space-sm-dark.svg)](https://huggingface.co/spaces/r3gm/AICoverGen_old_stable_cpu?duplicate=true)\n\n") 
-
+        gr.Label(f'AICoverGen WebUI created with ❤️', show_label=False)
+        
         # main tab
         with gr.Tab("Generate"):
 
@@ -284,13 +270,8 @@ if __name__ == '__main__':
             with gr.Row():
                 clear_btn = gr.ClearButton(value='Clear', components=[song_input, rvc_model, keep_files, local_file])
                 generate_btn = gr.Button("Generate", variant='primary')
-                ai_cover = (
-                    gr.Audio(label='AI Cover', show_share_button=True)
-                    if args.builtin_player else
-                    gr.File(label="AI Cover", interactive=False)
-                )
-            gr.Markdown("- You can also try `AICoverGen❤️` in Colab’s free tier, which provides free GPU [link](https://github.com/R3gm/AICoverGen?tab=readme-ov-file#aicovergen).")
-
+                ai_cover = gr.Audio(label='AI Cover', show_share_button=True)
+                    
             ref_btn.click(update_models_list, None, outputs=rvc_model)
             is_webui = gr.Number(value=1, visible=False)
             generate_btn.click(song_cover_pipeline,
@@ -386,5 +367,5 @@ if __name__ == '__main__':
         # enable_queue=True,
         server_name=None if not args.listen else (args.listen_host or '0.0.0.0'),
         server_port=args.listen_port,
-        ssr_mode=args.ssr
     )
+
