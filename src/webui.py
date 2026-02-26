@@ -220,7 +220,7 @@ if __name__ == '__main__':
                             with gr.Row():
                                 with gr.Row():
                                     url_media_gui = gr.Textbox(value="", label="Enter URL", placeholder="www.youtube.com/watch?v=g_9rPvbENUw", lines=1)
-                                with gr.Row(scale=1):
+                                with gr.Row():
                                     url_button_gui = gr.Button("Process URL", variant="secondary")
                             url_button_gui.click(yt_download, [url_media_gui], [local_file])
                         song_input_file = gr.UploadButton('Upload 📂', file_types=['audio'], variant='primary', visible=False)
@@ -368,5 +368,6 @@ if __name__ == '__main__':
         server_name=None if not args.listen else (args.listen_host or '0.0.0.0'),
         server_port=args.listen_port,
     )
+
 
 
