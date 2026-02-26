@@ -107,12 +107,8 @@ class Config:
         return x_pad, x_query, x_center, x_max
 
 
-def load_hubert(device, is_half, model_path):
-    
-    models = fairseq.load_model(model_path).to(device).eval()
-    
-    return hubert
-
+def load_hubert(device, is_half, model_path):    
+    fairseq.load_model(model_path).to(device).eval()
 
 def get_vc(device, is_half, config, model_path):
     cpt = torch.load(model_path, map_location='cpu')
@@ -165,6 +161,7 @@ def rvc_infer(index_path, index_rate, input_path, output_path, pitch_change, f0_
 
         wavfile.write(output_path, tgt_sr, audio_opt)
         working_path = output_path
+
 
 
 
